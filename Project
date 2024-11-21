@@ -1,0 +1,5 @@
+Create a Next.js project:
+
+
+npx create-next-app@latest virtual-scroll-app --typescript
+cd virtual-scroll-app

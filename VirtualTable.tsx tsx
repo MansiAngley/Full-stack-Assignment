@@ -1,0 +1,49 @@
+import React, { useState } from "react";
+import { FixedSizeList as List } from "react-window";
+import { useQuery } from "react-query";
+import axios from "axios";
+
+const fetchData = async (cursor: string | null) => {
+  const response = await axios.get(`/api/data?cursor=${cursor}`);
+  return response.data;
+};
+
+const VirtualTable: React.FC = () => {
+  const [cursor, setCursor] = useState<string | null>(null);
+  const { data, isFetching, fetchNextPage } = useQuery(
+    ["data", cursor],
+    () => fetchData(cursor),
+    {
+      keepPreviousData: true,
+    }
+  );
+
+  const loadMoreData = () => {
+    if (data?.nextCursor) {
+      setCursor(data.nextCursor);
+      fetchNextPage();
+    }
+  };
+
+  return (
+    <List
+      height={400}
+      itemCount={data?.items.length || 0}
+      itemSize={35}
+      width={800}
+      onScroll={({ scrollOffset }) => {
+        if (scrollOffset + 400 >= data?.items.length * 35 && !isFetching) {
+          loadMoreData();
+        }
+      }}
+    >
+      {({ index, style }) => (
+        <div style={style}>
+          {data?.items[index].name || "Loading..."}
+        </div>
+      )}
+    </List>
+  );
+};
+
+export default VirtualTable;
